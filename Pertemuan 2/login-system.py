@@ -237,7 +237,7 @@ print("=" * 60)
 print("BAGIAN 4: LAPORAN KEAMANAN LENGKAP")
 print("=" * 60)
 
-# Menggabungkan semua data yang sudah dianalisis
+# Menggabungkan semua data yang sudah dianalisis data
 print("\n--- LAPORAN KEAMANAN SISTEM ---")
 print("Tanggal : 2024-09-03")
 print("=" * 60)
