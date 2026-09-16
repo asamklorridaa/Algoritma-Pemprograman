@@ -166,42 +166,41 @@ print("=" * 60)
 # Memasukkan data alamat IP untuk dianalisis
 ip_address = input("\nMasukkan alamat IP yang akan dianalisis: ")
 
+# Memisahkan alamat IP menjadi 4 bagian berdasarkan titik
+# split('.') digunakan untuk memecah string menjadi list
+# Contoh: "192.168.1.100" menjadi ["192", "168", "1", "100"]
 bagian_ip = ip_address.split('.')
 
 # Daftar IP yang dikenal sebagai IP berbahaya
 ip_berbahaya = ["192.168.1.100", "10.0.0.1", "172.16.0.1"]
 
+# Daftar port berbahaya yang umum digunakan untuk serangan
+port_berbahaya = [21, 23, 25, 135, 445, 3389, 1433, 1434]
+port_aman = [80, 443, 22, 3306, 5432]
+
 # Analisis alamat IP
 print("\n--- ANALISIS ALAMAT IP ---")
-
 if len(bagian_ip) == 4:
     print(f"IP Address : {ip_address}")
-    
-    # Menampilkan setiap oktet dari IP
-    print(f"Oktet 1    : {bagian_ip}")
-    print(f"Oktet 2    : {bagian_ip[1]}")
-    print(f"Oktet 3    : {bagian_ip[2]}")
-    print(f"Oktet 4    : {bagian_ip[3]}")
-    
-    # Mengecek apakah IP termasuk dalam daftar berbahaya
-    is_ip_berbahaya = ip_address in ip_berbahaya
-    
-    if is_ip_berbahaya:
-        print("\nSTATUS IP: BERBAHAYA")
-        print("IP ini terdaftar dalam daftar IP berbahaya")
-    else:
-        print("\nSTATUS IP: AMAN")
-        print("IP ini tidak terdaftar dalam daftar IP berbahaya")
+
+# Menampilkan setiap oktet dari IP
+print(f"Oktet 1 : {bagian_ip[0]}")
+print(f"Oktet 2 : {bagian_ip[1]}")
+print(f"Oktet 3 : {bagian_ip[2]}")
+print(f"Oktet 4 : {bagian_ip[3]}")
+
+# Mengecek apakah IP termasuk dalam daftar berbahaya
+is_ip_berbahaya = ip_address in ip_berbahaya
+if is_ip_berbahaya:
+    print("\nSTATUS IP: BERBAHAYA")
+    print("IP ini terdaftar dalam daftar IP berbahaya")
+else:
+    print("\nSTATUS IP: AMAN")
+    print("IP ini tidak terdaftar dalam daftar IP berbahaya")
 else:
     print("Format IP tidak valid. Gunakan format xxx.xxx.xxx.xxx")
-
-
-# Daftar port berbahaya dan aman
-port_berbahaya = [21, 23, ]
-port_aman = [80, 443, 53, 161]
-
 # Analisis port jaringan
-print("\n--- ANALISIS PORT JARINGAN ---")
+    print("\n--- ANALISIS PORT JARINGAN ---")
 
 # Meminta input port dari pengguna
 port_input = input("Masukkan nomor port yang akan diperiksa: ")
@@ -224,67 +223,74 @@ else:
     status_port = "TIDAK DIKETAHUI"
     rekomendasi = "Perlu investigasi lebih lanjut"
 
-print(f"\nPort      : {port}")
-print(f"Status      : {status_port}")
+print(f"\nPort : {port}")
+print(f"Status : {status_port}")
 print(f"Rekomendasi : {rekomendasi}")
 
-
-# ============================================================
+# =================================================================
 # BAGIAN 4: LAPORAN KEAMANAN LENGKAP
-# ============================================================
+# =================================================================
 print("\n")
 print("=" * 60)
 print("BAGIAN 4: LAPORAN KEAMANAN LENGKAP")
 print("=" * 60)
 
-# Menggabungkan semua data yang sudah dianalisis data
+# Menggabungkan semua data yang sudah dianalisis
 print("\n--- LAPORAN KEAMANAN SISTEM ---")
 print("Tanggal : 2024-09-03")
-print("=" * 60)
+print("============================================================")
 
 # Laporan Login
 print("\n[1] LAPORAN LOGIN")
-print(f"    Username    : {username}")
-print(f"    IP Akses    : {ip_akses}")
-if is_login_berhasil:
-    print("    Status      : BERHASIL")
+if user_login is not None:
+    print(f" Username : {user_login}")
+    print(f" Role : {role_login}")
+    print(f" IP Akses : {ip_login}")
+    print(" Status : BERHASIL")
 else:
-    print("    Status      : GAGAL")
+    print(" Status : GAGAL")
 
 # Laporan Password
 print("\n[2] LAPORAN PASSWORD")
-print(f"    Password    : {'*' * len(password)}")
-print(f"    Skor        : {skor}/5")
-print(f"    Level       : {level}")
+print(f" Password : {'*' * len(password)}")
+print(f" Skor : {skor}/6")
+print(f" Level : {level}")
 
 # Laporan Port
 print("\n[3] LAPORAN PORT")
-print(f"    Port        : {port}")
-print(f"    Status      : {status_port}")
+print(f" Port : {port}")
+print(f" Status : {status_port}")
 
 # Laporan IP
 print("\n[4] LAPORAN IP")
-print(f"    IP Address  : {ip_akses}")
-if ip_akses == ip_terdaftar:
-    print("    Status      : TERDAFTAR")
-else:
-    print("    Status      : TIDAK TERDAFTAR")
+if user_login is not None:
+    print(f" IP Address : {ip_login}")
 
-# Kesimpulan dan Rekomendasi
-print("\n" + "=" * 60)
+# Cek apakah IP terdaftar di database
+ip_terdaftar = False
+for user in database_user:
+if user["ip"] == ip_login:
+ip_terdaftar = True
+break
+if ip_terdaftar:
+print(" Status : TERDAFTAR")
+else:
+print(" Status : TIDAK TERDAFTAR")
+else:
+print(" Status : BELUM LOGIN")
+# Rekomendasi Kesimpulan
+print("\n============================================================")
 print("KESIMPULAN DAN REKOMENDASI")
-
-if is_login_berhasil and level in ["KUAT", "SANGAT KUAT"] and is_port_aman:
-    print("SISTEM AMAN. Semua komponen dalam kondisi baik")
-elif is_login_berhasil and level in ["SANGAT LEMAH", "LEMAH"]:
-    print("PERINGATAN: Password lemah. Segera ganti dengan password yang lebih kuat")
-elif not is_login_berhasil:
-    print("PERINGATAN: Upaya login gagal. Periksa kembali kredensial Anda")
+if user_login is not None and skor >= 5 and is_port_aman:
+print("SISTEM AMAN. Semua komponen dalam kondisi baik")
+elif user_login is not None and skor <= 2:
+print("PERINGATAN: Password lemah. Segera ganti dengan password yang lebih kuat")
+elif user_login is None:
+print("PERINGATAN: Upaya login gagal. Periksa kembali kredensial Anda")
 elif is_port_berbahaya:
-    print("PERINGATAN: Port berbahaya terdeteksi. Segera lakukan penutupan port")
+print("PERINGATAN: Port berbahaya terdeteksi. Segera lakukan penutupan port")
 else:
-    print("Perlu dilakukan evaluasi keamanan lebih lanjut")
-
+print("Perlu dilakukan evaluasi keamanan lebih lanjut")
 print("=" * 60)
 print("AKHIR LAPORAN")
 print("=" * 60)

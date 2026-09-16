@@ -1,264 +1,477 @@
-import ipaddress
-import socket
+# =================================================================
+# MODUL PRAKTIKUM 2: SISTEM KEAMANAN DASAR
+# Mata Kuliah: Algoritma Pemrograman
+# Prodi: D4 Rekayasa Keamanan Siber
+# =================================================================
 
+print("=" * 60)
+print("SISTEM KEAMANAN DASAR")
+print("D4 Rekayasa Keamanan Siber")
+print("=" * 60)
 
-DATABASE_USER = {
-    "admin": {
+# =================================================================
+# DATABASE USER (3 User)
+# =================================================================
+
+database_user = [
+    {
+        "username": "admin",
         "password": "Admin123",
         "role": "admin",
-        "ip": "192.168.1.100",
+        "ip": "192.168.1.100"
     },
-    "user1": {
+    {
+        "username": "user1",
         "password": "User123",
         "role": "user",
-        "ip": "192.168.1.101",
+        "ip": "192.168.1.101"
     },
-    "security": {
+    {
+        "username": "security",
         "password": "Secure@2024",
         "role": "security",
-        "ip": "192.168.1.102",
-    },
-}
+        "ip": "192.168.1.102"
+    }
+]
 
-PORT_BERBAHAYA = {21, 23, 135, 139, 445, 3389}
+# Variabel untuk menyimpan data user yang login
+user_login = None
+role_login = None
+ip_login = None
 
+# =================================================================
+# BAGIAN 1: FUNGSI LOGIN SEDERHANA
+# =================================================================
 
-def login():
+print("\n")
+print("=" * 60)
+print("BAGIAN 1: FUNGSI LOGIN SEDERHANA")
+print("=" * 60)
+
+print("\n--- SILAKAN LOGIN KE SISTEM ---")
+
+# Meminta input dari pengguna untuk proses login
+username = input("Masukkan Username: ")
+password = input("Masukkan Password: ")
+ip_akses = input("Masukkan Alamat IP: ")
+
+# Cari user di database
+user_ditemukan = None
+
+for user in database_user:
+    if user["username"] == username:
+        user_ditemukan = user
+        break
+
+if user_ditemukan is None:
+    print("\nSTATUS: LOGIN GAGAL")
+    print("- Username tidak terdaftar")
     print("\n" + "=" * 60)
-    print("SISTEM KEAMANAN TERINTEGRASI")
+    print("PROGRAM BERAKHIR")
+    print("Username tidak terdaftar.")
+    print("=" * 60)
+    exit()
+
+is_password_benar = password == user_ditemukan["password"]
+is_ip_terdaftar = ip_akses == user_ditemukan["ip"]
+
+if is_password_benar and is_ip_terdaftar:
+    user_login = username
+    role_login = user_ditemukan["role"]
+    ip_login = ip_akses
+
+    print("\n" + "=" * 60)
+    print("STATUS: LOGIN BERHASIL")
+    print(f"Selamat datang, {username}!")
+    print(f"Role: {role_login}")
     print("=" * 60)
 
-    for percobaan in range(1, 4):
-        print(f"\nPercobaan ke-{percobaan} dari 3")
-        username = input("Username: ").strip()
-        password = input("Password: ")
-        ip_akses = input("IP terdaftar: ").strip()
+else:
+    print("\nSTATUS: LOGIN GAGAL")
+    print("Akses ditolak")
 
-        data_user = DATABASE_USER.get(username)
-        login_valid = (
-            data_user is not None
-            and data_user["password"] == password
-            and data_user["ip"] == ip_akses
-        )
+    if not is_password_benar:
+        print("- Password salah")
 
-        if login_valid:
-            print(f"Login berhasil. Selamat datang, {username}.")
-            print(f"Role: {data_user['role']}")
-            return username, data_user["role"]
+    if not is_ip_terdaftar:
+        print("- Alamat IP tidak terdaftar")
 
-        print("Login gagal.")
-        if data_user is None:
-            print("Username tidak terdaftar.")
-        elif data_user["password"] != password:
-            print("Password salah.")
-        elif data_user["ip"] != ip_akses:
-            print("IP tidak sesuai dengan database.")
-        print(f"Sisa percobaan: {3 - percobaan}")
-
-    print("Akses ditolak karena batas 3 percobaan tercapai.")
-    return None, None
-
-
-def analisis_password(username):
-    password = input("\nPassword yang akan dianalisis: ")
-    jumlah_besar = sum(karakter.isupper() for karakter in password)
-    jumlah_kecil = sum(karakter.islower() for karakter in password)
-    jumlah_angka = sum(karakter.isdigit() for karakter in password)
-    jumlah_spesial = sum(not karakter.isalnum() for karakter in password)
-
-    kriteria = [
-        ("Minimal 10 karakter", len(password) >= 10, 2),
-        ("Minimal 2 huruf besar", jumlah_besar >= 2, 1),
-        ("Minimal 2 huruf kecil", jumlah_kecil >= 2, 1),
-        ("Minimal 2 angka", jumlah_angka >= 2, 1),
-        ("Minimal 2 karakter spesial", jumlah_spesial >= 2, 1),
-        (
-            "Tidak mengandung username",
-            username.lower() not in password.lower(),
-            1,
-        ),
-    ]
-    skor = sum(nilai for _, terpenuhi, nilai in kriteria if terpenuhi)
-
-    if skor == 7:
-        level = "SANGAT KUAT"
-    elif skor >= 5:
-        level = "KUAT"
-    elif skor >= 3:
-        level = "SEDANG"
-    elif skor >= 1:
-        level = "LEMAH"
-    else:
-        level = "SANGAT LEMAH"
-
-    print("\n--- HASIL ANALISIS PASSWORD ---")
-    print(f"Password: {'*' * len(password)}")
-    print(f"Skor: {skor}/7")
-    print(f"Level: {level}")
-    for nama, terpenuhi, _ in kriteria:
-        status = "YA" if terpenuhi else "TIDAK"
-        print(f"- {nama}: {status}")
-
-
-def tentukan_kelas_ip(oktet_pertama):
-    if 1 <= oktet_pertama <= 126:
-        return "A"
-    if 128 <= oktet_pertama <= 191:
-        return "B"
-    if 192 <= oktet_pertama <= 223:
-        return "C"
-    if 224 <= oktet_pertama <= 239:
-        return "D"
-    if 240 <= oktet_pertama <= 255:
-        return "E"
-    return "Khusus (0 atau 127)"
-
-
-def analisis_ip():
-    alamat = input("\nAlamat IPv4: ").strip()
-    try:
-        ip = ipaddress.ip_address(alamat)
-        if ip.version != 4:
-            raise ValueError
-    except ValueError:
-        print("Format IPv4 tidak valid.")
-        return
-
-    oktet_pertama = int(str(ip).split(".")[0])
-    tipe = "PRIVAT" if ip.is_private else "PUBLIK"
-    print("\n--- HASIL ANALISIS IP ---")
-    print(f"IP: {ip}")
-    print("Format: VALID")
-    print(f"Kelas: {tentukan_kelas_ip(oktet_pertama)}")
-    print(f"Tipe: {tipe}")
-
-
-def klasifikasi_port(port):
-    if port <= 1023:
-        return "Well-known"
-    if port <= 49151:
-        return "Registered"
-    return "Dynamic"
-
-
-def baca_port():
-    try:
-        port = int(input("\nNomor port (0-65535): "))
-    except ValueError:
-        print("Port harus berupa angka.")
-        return None
-    if not 0 <= port <= 65535:
-        print("Port harus berada di antara 0 dan 65535.")
-        return None
-    return port
-
-
-def analisis_port():
-    port = baca_port()
-    if port is None:
-        return
-
-    status = "BERBAHAYA" if port in PORT_BERBAHAYA else "AMAN"
-    print("\n--- HASIL ANALISIS PORT ---")
-    print(f"Port: {port}")
-    print(f"Klasifikasi: {klasifikasi_port(port)}")
-    print(f"Status: {status}")
-
-
-def scan_port_range():
-    teks_range = input("\nRange port (contoh 1-100): ").strip()
-    try:
-        awal_teks, akhir_teks = teks_range.split("-", maxsplit=1)
-        awal = int(awal_teks)
-        akhir = int(akhir_teks)
-    except ValueError:
-        print("Format range tidak valid. Gunakan contoh: 1-100")
-        return
-
-    if not 0 <= awal <= akhir <= 65535:
-        print("Range harus berada di antara 0 dan 65535.")
-        return
-
-    target = input("Host target (Enter untuk localhost): ").strip() or "127.0.0.1"
-    try:
-        socket.gethostbyname(target)
-    except socket.gaierror:
-        print("Host target tidak ditemukan.")
-        return
-
-    port_terbuka = []
-    print(f"Memindai {target} pada port {awal}-{akhir}...")
-    for port in range(awal, akhir + 1):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as koneksi:
-            koneksi.settimeout(0.05)
-            if koneksi.connect_ex((target, port)) == 0:
-                port_terbuka.append(port)
-
-    hasil = ", ".join(map(str, port_terbuka)) or "tidak ada"
-    print(f"Port terbuka: {hasil}")
-
-
-def tampilkan_database():
-    print("\n--- DATABASE USER ---")
-    for username, data_user in DATABASE_USER.items():
-        print(
-            f"Username: {username} | Role: {data_user['role']} "
-            f"| IP: {data_user['ip']}"
-        )
-
-
-def tampilkan_menu(role):
     print("\n" + "=" * 60)
-    print(f"MENU ROLE: {role.upper()}")
-    print("1. Analisis kekuatan password")
-    print("2. Analisis alamat IP")
-    print("3. Analisis port")
-    print("4. Scan port range")
-    if role in ("admin", "security"):
-        print("5. Tampilkan database user")
-    print("6. Jalankan semua")
-    print("0. Logout")
+    print("PROGRAM BERAKHIR")
+    print("Login gagal.")
+    print("=" * 60)
+    exit()
 
 
-def jalankan_semua(username, role):
-    print("\nMenjalankan semua fitur...")
-    analisis_password(username)
-    analisis_ip()
-    analisis_port()
-    scan_port_range()
-    if role in ("admin", "security"):
-        tampilkan_database()
+# =================================================================
+# BAGIAN 2: ANALISIS KEKUATAN PASSWORD
+# =================================================================
+
+print("\n")
+print("=" * 60)
+print("BAGIAN 2: ANALISIS KEKUATAN PASSWORD")
+print("=" * 60)
+
+# Menggunakan username yang sudah login untuk pengecekan
+username_untuk_cek = user_login
+
+print(
+    f"\nUsername yang digunakan untuk pengecekan: "
+    f"{username_untuk_cek}"
+)
+
+# Meminta input password dari pengguna
+password = input("Masukkan password yang akan dianalisis: ")
+
+# Menghitung panjang password menggunakan fungsi len()
+panjang = len(password)
+
+# Kriteria 1: Minimal 10 karakter
+kriteria1 = panjang >= 10
+
+# Kriteria 2: Minimal 2 huruf besar
+jumlah_huruf_besar = sum(
+    1 for c in password if c.isupper()
+)
+kriteria2 = jumlah_huruf_besar >= 2
+
+# Kriteria 3: Minimal 2 huruf kecil
+jumlah_huruf_kecil = sum(
+    1 for c in password if c.islower()
+)
+kriteria3 = jumlah_huruf_kecil >= 2
+
+# Kriteria 4: Minimal 2 angka
+jumlah_angka = sum(
+    1 for c in password if c.isdigit()
+)
+kriteria4 = jumlah_angka >= 2
+
+# Kriteria 5: Minimal 2 karakter spesial
+karakter_spesial = "!@#$%^&*()_+-=[]{}|;:,.<>?/~"
+
+jumlah_spesial = sum(
+    1 for c in password if c in karakter_spesial
+)
+
+kriteria5 = jumlah_spesial >= 2
+
+# Kriteria 6: Tidak mengandung username
+kriteria6 = username_untuk_cek.lower() not in password.lower()
+
+# Menghitung skor kekuatan password
+# Setiap kriteria yang terpenuhi bernilai 1 poin
+
+skor = 0
+
+if kriteria1:
+    skor = skor + 1
+
+if kriteria2:
+    skor = skor + 1
+
+if kriteria3:
+    skor = skor + 1
+
+if kriteria4:
+    skor = skor + 1
+
+if kriteria5:
+    skor = skor + 1
+
+if kriteria6:
+    skor = skor + 1
+
+# Menentukan level kekuatan password berdasarkan skor
+# Skor maksimal adalah 6
+
+if skor >= 6:
+    level = "SANGAT KUAT"
+elif skor >= 5:
+    level = "KUAT"
+elif skor >= 3:
+    level = "SEDANG"
+elif skor >= 1:
+    level = "LEMAH"
+else:
+    level = "SANGAT LEMAH"
+
+# Menampilkan hasil analisis password
+print("\n--- HASIL ANALISIS PASSWORD ---")
+print(f"Password : {'*' * panjang}")
+print(f"Panjang : {panjang} karakter")
+print(f"Skor     : {skor}/6")
+print(f"Level    : {level}")
+
+print("\nDetail Kriteria:")
+
+print(
+    f"- Minimal 10 karakter      : "
+    f"{'YA' if kriteria1 else 'TIDAK'} ({panjang})"
+)
+
+print(
+    f"- Minimal 2 Huruf Besar    : "
+    f"{'YA' if kriteria2 else 'TIDAK'} "
+    f"({jumlah_huruf_besar})"
+)
+
+print(
+    f"- Minimal 2 Huruf Kecil    : "
+    f"{'YA' if kriteria3 else 'TIDAK'} "
+    f"({jumlah_huruf_kecil})"
+)
+
+print(
+    f"- Minimal 2 Angka          : "
+    f"{'YA' if kriteria4 else 'TIDAK'} "
+    f"({jumlah_angka})"
+)
+
+print(
+    f"- Minimal 2 Spesial        : "
+    f"{'YA' if kriteria5 else 'TIDAK'} "
+    f"({jumlah_spesial})"
+)
+
+print(
+    f"- Tidak mengandung username : "
+    f"{'YA' if kriteria6 else 'TIDAK'}"
+)
+
+# Memberikan rekomendasi perbaikan
+print("\n--- REKOMENDASI PERBAIKAN ---")
+
+if not kriteria1:
+    print("- Tambah panjang password minimal 10 karakter")
+
+if not kriteria2:
+    print("- Tambahkan minimal 2 huruf besar (A-Z)")
+
+if not kriteria3:
+    print("- Tambahkan minimal 2 huruf kecil (a-z)")
+
+if not kriteria4:
+    print("- Tambahkan minimal 2 angka (0-9)")
+
+if not kriteria5:
+    print("- Tambahkan minimal 2 karakter spesial (!, @, #, $, %)")
+
+if not kriteria6:
+    print("- Password tidak boleh mengandung username")
+
+if skor >= 5:
+    print("\nPassword Anda sudah baik. Pertahankan keamanannya")
 
 
-def menu_utama(username, role):
-    while True:
-        tampilkan_menu(role)
-        pilihan = input("Pilih menu: ").strip()
+# =================================================================
+# BAGIAN 3: ANALISIS JARINGAN DAN IP
+# =================================================================
 
-        if pilihan == "1":
-            analisis_password(username)
-        elif pilihan == "2":
-            analisis_ip()
-        elif pilihan == "3":
-            analisis_port()
-        elif pilihan == "4":
-            scan_port_range()
-        elif pilihan == "5" and role in ("admin", "security"):
-            tampilkan_database()
-        elif pilihan == "6":
-            jalankan_semua(username, role)
-        elif pilihan == "0":
-            print("Logout berhasil.")
+print("\n")
+print("=" * 60)
+print("BAGIAN 3: ANALISIS JARINGAN DAN IP")
+print("=" * 60)
+
+# Memasukkan data alamat IP untuk dianalisis
+ip_address = input(
+    "\nMasukkan alamat IP yang akan dianalisis: "
+)
+
+# Memisahkan alamat IP menjadi 4 bagian berdasarkan titik
+# split('.') digunakan untuk memecah string menjadi list
+# Contoh:
+# "192.168.1.100"
+# menjadi
+# ["192", "168", "1", "100"]
+
+bagian_ip = ip_address.split('.')
+
+# Daftar IP yang dikenal sebagai IP berbahaya
+ip_berbahaya = [
+    "192.168.1.100",
+    "10.0.0.1",
+    "172.16.0.1"
+]
+
+# Daftar port berbahaya yang umum digunakan untuk serangan
+port_berbahaya = [
+    21,
+    23,
+    25,
+    135,
+    445,
+    3389,
+    1433,
+    1434
+]
+
+port_aman = [
+    80,
+    443,
+    22,
+    3306,
+    5432
+]
+
+# Analisis alamat IP
+print("\n--- ANALISIS ALAMAT IP ---")
+
+if len(bagian_ip) == 4:
+    print(f"IP Address : {ip_address}")
+
+    # Menampilkan setiap oktet dari IP
+    print(f"Oktet 1     : {bagian_ip[0]}")
+    print(f"Oktet 2     : {bagian_ip[1]}")
+    print(f"Oktet 3     : {bagian_ip[2]}")
+    print(f"Oktet 4     : {bagian_ip[3]}")
+
+    # Mengecek apakah IP termasuk dalam daftar berbahaya
+    is_ip_berbahaya = ip_address in ip_berbahaya
+
+    if is_ip_berbahaya:
+        print("\nSTATUS IP: BERBAHAYA")
+        print("IP ini terdaftar dalam daftar IP berbahaya")
+    else:
+        print("\nSTATUS IP: AMAN")
+        print("IP ini tidak terdaftar dalam daftar IP berbahaya")
+
+else:
+    print(
+        "Format IP tidak valid. "
+        "Gunakan format xxx.xxx.xxx.xxx"
+    )
+
+
+# Analisis port jaringan
+print("\n--- ANALISIS PORT JARINGAN ---")
+
+# Meminta input port dari pengguna
+port_input = input(
+    "Masukkan nomor port yang akan diperiksa: "
+)
+
+# Konversi input string ke integer
+port = int(port_input)
+
+# Mengecek status port
+is_port_berbahaya = port in port_berbahaya
+is_port_aman = port in port_aman
+
+# Menentukan status port
+if is_port_berbahaya:
+    status_port = "BERBAHAYA"
+    rekomendasi = (
+        "Tutup port ini karena sering digunakan untuk serangan"
+    )
+
+elif is_port_aman:
+    status_port = "AMAN"
+    rekomendasi = "Port ini aman untuk digunakan"
+
+else:
+    status_port = "TIDAK DIKETAHUI"
+    rekomendasi = "Perlu investigasi lebih lanjut"
+
+print(f"\nPort        : {port}")
+print(f"Status      : {status_port}")
+print(f"Rekomendasi : {rekomendasi}")
+
+
+# =================================================================
+# BAGIAN 4: LAPORAN KEAMANAN LENGKAP
+# =================================================================
+
+print("\n")
+print("=" * 60)
+print("BAGIAN 4: LAPORAN KEAMANAN LENGKAP")
+print("=" * 60)
+
+# Menggabungkan semua data yang sudah dianalisis
+print("\n--- LAPORAN KEAMANAN SISTEM ---")
+print("Tanggal : 2024-09-03")
+print("============================================================")
+
+# Laporan Login
+print("\n[1] LAPORAN LOGIN")
+
+if user_login is not None:
+    print(f"     Username       : {user_login}")
+    print(f"     Role           : {role_login}")
+    print(f"     IP Akses       : {ip_login}")
+    print("     Status         : BERHASIL")
+else:
+    print("     Status         : GAGAL")
+
+
+# Laporan Password
+print("\n[2] LAPORAN PASSWORD")
+print(f"     Password       : {'*' * len(password)}")
+print(f"     Skor           : {skor}/6")
+print(f"     Level          : {level}")
+
+
+# Laporan Port
+print("\n[3] LAPORAN PORT")
+print(f"     Port           : {port}")
+print(f"     Status         : {status_port}")
+
+
+# Laporan IP
+print("\n[4] LAPORAN IP")
+
+if user_login is not None:
+    print(f"     IP Address     : {ip_login}")
+
+    # Cek apakah IP terdaftar di database
+    ip_terdaftar = False
+
+    for user in database_user:
+        if user["ip"] == ip_login:
+            ip_terdaftar = True
             break
-        else:
-            print("Pilihan menu tidak tersedia untuk role Anda.")
+
+    if ip_terdaftar:
+        print("     Status         : TERDAFTAR")
+    else:
+        print("     Status         : TIDAK TERDAFTAR")
+
+else:
+    print("     Status         : BELUM LOGIN")
 
 
-def main():
-    username, role = login()
-    if username is not None:
-        menu_utama(username, role)
+# Rekomendasi Kesimpulan
+print("\n============================================================")
+print("KESIMPULAN DAN REKOMENDASI")
 
+if user_login is not None and skor >= 5 and is_port_aman:
+    print(
+        "SISTEM AMAN. Semua komponen dalam kondisi baik"
+    )
 
-if __name__ == "__main__":
-    main()
+elif user_login is not None and skor <= 2:
+    print(
+        "PERINGATAN: Password lemah. "
+        "Segera ganti dengan password yang lebih kuat"
+    )
+
+elif user_login is None:
+    print(
+        "PERINGATAN: Upaya login gagal. "
+        "Periksa kembali kredensial Anda"
+    )
+
+elif is_port_berbahaya:
+    print(
+        "PERINGATAN: Port berbahaya terdeteksi. "
+        "Segera lakukan penutupan port"
+    )
+
+else:
+    print(
+        "Perlu dilakukan evaluasi keamanan lebih lanjut"
+    )
+
+print("=" * 60)
+print("AKHIR LAPORAN")
+print("=" * 60)
