@@ -3,7 +3,6 @@
 # ==========================================
 
 def tanya_int(prompt):
-    """Meminta input angka bulat, validasi dengan try-except."""
     while True:
         try:
             return int(input(prompt))
@@ -11,7 +10,6 @@ def tanya_int(prompt):
             print(" [!] input harus berupa angka")
 
 def tanya_float(prompt):
-    """Meminta input angka desimal, validasi dengan try-except."""
     while True:
         try:
             return float(input(prompt))
@@ -19,21 +17,17 @@ def tanya_float(prompt):
             print(" [!] input harus berupa angka")
 
 def tanya_ya(prompt):
-    """Konfirmasi ya/tidak. Return True jika 'y', selain itu False."""
     return input(prompt + " (y/n): ").strip().lower() == "y"
 
 def garis(panjang=70, karakter="="):
-    """Cetak garis pembatas."""
     print(karakter * panjang)
 
 def judul(teks):
-    """Cetak judul dengan dekorasi garis."""
     garis()
     print(f"  {teks}")
     garis()
 
 def sub(teks):
-    """Cetak sub-judul."""
     print(f"\n[ {teks} ]")
     garis(70, "-")
 
@@ -42,7 +36,6 @@ def sub(teks):
 # ==========================================
 
 def login_dasar():
-    """Login dasar dengan IF-ELSE untuk cek username dan password."""
     judul("BAGIAN 1 - LOGIN DASAR")
     USER_VALID = "admin"
     PWD_VALID = "Admin123!"
@@ -80,7 +73,6 @@ def login_dasar():
 # ==========================================
 
 def login_berlapis():
-    """Login bertingkat dengan nested if."""
     judul("BAGIAN 2 - LOGIN BERLAPIS")
     USERS = {
         "admin": {"pwd": "Admin!2024", "role": "admin", "mfa": True, "lock": False},
@@ -129,7 +121,6 @@ def login_berlapis():
 # ==========================================
 
 def otorisasi_akses():
-    """Otorisasi akses dengan ELIF untuk role & NESTED IF untuk resource & aksi."""
     judul("BAGIAN 3 - OTORISASI AKSES BERBASIS ROLE")
     
     sub("Input Permintaan Akses")
@@ -189,7 +180,6 @@ def otorisasi_akses():
 # ==========================================
 
 def analisis_password():
-    """Analisis kekuatan password dengan if-elif + ternary + any()."""
     judul("BAGIAN 4 - ANALISIS KEKUATAN PASSWORD")
     
     sub("Input Password")
@@ -273,7 +263,6 @@ def analisis_password():
 # ==========================================
 
 def validasi_registrasi():
-    """Validasi form registrasi pengguna."""
     judul("BAGIAN 5 - VALIDASI FORM REGISTRASI")
     
     sub("Input Data Registrasi")
@@ -333,7 +322,6 @@ def validasi_registrasi():
 # ==========================================
 
 def simulasi_login():
-    """Simulasi login dengan pembatasan percobaan."""
     judul("BAGIAN 6 - SIMULASI LOGIN DENGAN BATAS PERCOBAAN")
     USER_VALID = "admin"
     PWD_VALID = "Admin!2024"
@@ -381,7 +369,6 @@ def simulasi_login():
 # ==========================================
 
 def sistem_login_lengkap():
-    """Integrasi semua konsep login, otorisasi, dan analisis."""
     judul("BAGIAN 7 - SISTEM LOGIN LENGKAP")
     USERS = {
         "admin": {"pwd": "Admin!2024", "role": "admin", "mfa": True},
@@ -477,7 +464,6 @@ def sistem_login_lengkap():
 # ==========================================
 
 def menu():
-    """Tampilkan menu utama."""
     print()
     garis()
     print("                LATIHAN PRAKTIKUM 3 - PERCABANGAN")
@@ -495,7 +481,6 @@ def menu():
     garis()
 
 def jalankan_semua():
-    """Jalankan semua bagian secara berurutan."""
     for fungsi in [login_dasar, login_berlapis, otorisasi_akses,
                    analisis_password, validasi_registrasi,
                    simulasi_login, sistem_login_lengkap]:
@@ -507,7 +492,6 @@ def jalankan_semua():
     garis()
 
 def main():
-    """Entry point program."""
     aksi = {
         "1": login_dasar,
         "2": login_berlapis,
